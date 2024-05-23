@@ -123,3 +123,96 @@ where e.id_produto = '2';
 select c.nome as nome, c.email as email, c.endereco as endereço, p.quantidade_pedido as quantidade from cliente_pedido as p
 inner join cliente as c on c.id_cliente = p.id_cliente 
 inner join estoque as e on e.tipo_estoque = tipo_pedido;
+
+-- ----------------------------------------------------------------------------------------
+-- | TRIGGERS |----------------------------------------------------------------------------
+-- ----------------------------------------------------------------------------------------
+
+-- Trigger's de update e delete
+create table if not exists registro_auditoria (
+    id_produto int not null references estoque(id_produto),
+  	quantidade_estoque int not null references estoque(quantidade_estoque) ,
+    data_alteracao datetime,
+    nova_quantidade int not null 
+) engine = innodb;   
+
+-- ----------------------------------------------------------------------------------------
+delimiter $
+create trigger registro_auditoria_updt
+before update on estoque
+for each row
+begin
+    insert into registro_auditoria (id_produto, quantidade_estoque, data_alteracao, nova_quantidade) 
+    values (old.id_produto, old.quantidade_estoque, now(), new.quantidade_estoque);
+end$
+delimiter ;
+drop trigger registro_auditoria_updt; -- utilizar em caso de erro na trigger
+
+-- ------------------------------------------------------------------------------------
+-- -------------------------------------------------------------------------------------
+
+select * from registro_auditoria;
+update estoque set quantidade_estoque ='240' where id_produto = 1;
+update estoque set quantidade_estoque ='290' where id_produto = 2;
+update estoque set quantidade_estoque ='300' where id_produto = 3;
+update estoque set quantidade_estoque ='310' where id_produto = 4;
+
+select * from estoque;
+
+-- ------------------------------------------------------------- --
+-- Trigger que subtrai quantidade no estoque  --
+-- ------------------------------------------------------------- --
+delimiter $
+CREATE TRIGGER vendas AFTER update ON cliente_pedido
+FOR EACH ROW
+BEGIN
+    UPDATE estoque
+    SET quantidade_estoque = quantidade_estoque - new.quantidade_pedido
+    WHERE id_produto = new.id_produto;
+END $
+delimiter ;
+
+drop trigger vendas;
+-- -------------------- --
+-- Select's e updates para testes --
+-- -------------------- --
+
+update estoque set quantidade_estoque ='240' where id_produto = 1;
+update estoque set quantidade_estoque ='290' where id_produto = 2;
+update estoque set quantidade_estoque ='300' where id_produto = 3;
+update estoque set quantidade_estoque ='310' where id_produto = 4;
+-- 
+update clientepedido set quantidade_pedido = '45' where id_pedido = 1 and id_cliente = 1 and id_produto = 4;
+update clientepedido set quantidade_pedido = '30' where id_produto = 2;
+update clientepedido set quantidade_pedido = '23' where id_produto = 3;
+
+select * from cliente_pedido;
+select * from estoque;
+select * from registro_auditoria;
+
+-- ----------------------------------------------------------------------------------------
+-- | FUNCTIONS |----------------------------------------------------------------------------
+-- ----------------------------------------------------------------------------------------
+
+-- 1 --| Valor total de um pedido feito por um cliente |--
+
+DELIMITER $$
+CREATE FUNCTION valor_Total(id_cliente INT)
+RETURNS VARCHAR(20)
+BEGIN 
+    DECLARE total_pedido DECIMAL(10,2);
+
+    SELECT SUM(e.preco_Unidade * cp.quantidade_pedido)
+    INTO total_pedido
+    FROM cliente_pedido AS cp
+    INNER JOIN estoque AS e ON e.id_produto = cp.id_produto
+    WHERE cp.id_cliente = id_cliente;
+
+    RETURN CONCAT('R$', total_pedido);
+END $$
+DELIMITER ;
+-- em caso de erro: drop function valor_total;
+
+SELECT c.nome AS nome_cliente, valor_total(c.id_cliente) AS total_pedido
+FROM cliente AS c;
+-- ----------------------------------------------------------------------------------------
