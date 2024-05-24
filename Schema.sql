@@ -183,6 +183,54 @@ select * from cliente_pedido;
 select * from estoque;
 
 -- ----------------------------------------------------------------------------------------
+-- | PROCEDURES |---------------------------------------------------------------------------
+-- ----------------------------------------------------------------------------------------
+
+delimiter $$
+
+create procedure inserir_cliente(
+in p_cpf varchar(11),
+in p_nome varchar(50),
+in p_endereco varchar(100),
+in p_email varchar(50),
+in p_telefone varchar(11)
+)
+begin
+insert into cliente (cpf, nome, endereco, email, telefone)
+values (p_cpf, p_nome, p_endereco, p_email, p_telefone);
+
+end $$
+
+delimiter ;
+
+call inserir_cliente('98765432100', 'Lucas Ribamar', 'Guará', 'lucasribamar@gmail.com', '61999887766');
+
+select * from cliente;
+-- ----------------------------------------------------------------------------------------
+
+delimiter $$
+
+create procedure clientes_30_50_itens()
+begin
+select
+c.nome as nome,
+c.email as email,
+c.telefone as telefone,
+c.endereco as endereco,
+p.quantidade_pedido as quantidade
+from
+cliente_pedido as p
+inner join
+cliente as c on c.id_cliente = p.id_cliente
+where
+p.quantidade_pedido between 30 and 50;
+end $$
+
+delimiter ;
+
+call clientes_30_50_itens();
+
+-- ----------------------------------------------------------------------------------------
 -- | FUNCTIONS |---------------------------------------------------------------------------
 -- ----------------------------------------------------------------------------------------
 
@@ -230,3 +278,4 @@ delimiter ;
 
 select tipo_estoque as Item, quantidade_estoque as Qtd, valor_estoque(id_produto) as 'Valor em Estoque' from estoque;
 -- ----------------------------------------------------------------------------------------
+-- -------- FIM -------- --
