@@ -147,8 +147,6 @@ begin
 end$
 delimiter ;
 drop trigger registro_auditoria_updt; -- utilizar em caso de erro na trigger
-
--- ------------------------------------------------------------------------------------
 -- -------------------------------------------------------------------------------------
 
 select * from registro_auditoria;
@@ -177,42 +175,58 @@ drop trigger vendas;
 -- Select's e updates para testes --
 -- -------------------- --
 
-update estoque set quantidade_estoque ='240' where id_produto = 1;
-update estoque set quantidade_estoque ='290' where id_produto = 2;
-update estoque set quantidade_estoque ='300' where id_produto = 3;
-update estoque set quantidade_estoque ='310' where id_produto = 4;
--- 
 update clientepedido set quantidade_pedido = '45' where id_pedido = 1 and id_cliente = 1 and id_produto = 4;
 update clientepedido set quantidade_pedido = '30' where id_produto = 2;
 update clientepedido set quantidade_pedido = '23' where id_produto = 3;
 
 select * from cliente_pedido;
 select * from estoque;
-select * from registro_auditoria;
 
 -- ----------------------------------------------------------------------------------------
 -- | FUNCTIONS |----------------------------------------------------------------------------
 -- ----------------------------------------------------------------------------------------
 
--- 1 --| Valor total de um pedido feito por um cliente |--
+-- 1 --| Valor total de um pedido |--
 
-DELIMITER $$
-CREATE FUNCTION valor_Total(id_cliente INT)
-RETURNS VARCHAR(20)
-BEGIN 
-    DECLARE total_pedido DECIMAL(10,2);
+-- drop function valor_total;
+delimiter $$
+create function valor_Total(id_cliente int)
+returns varchar(20)
+begin 
+    declare total_pedido decimal(10,2);
 
-    SELECT SUM(e.preco_Unidade * cp.quantidade_pedido)
-    INTO total_pedido
-    FROM cliente_pedido AS cp
-    INNER JOIN estoque AS e ON e.id_produto = cp.id_produto
-    WHERE cp.id_cliente = id_cliente;
+    select sum(e.preco_Unidade * cp.quantidade_pedido)
+		into total_pedido
+			from cliente_pedido as cp
+				inner join estoque as e on e.id_produto = cp.id_produto
+					where cp.id_cliente = id_cliente;
+						return concat('R$', total_pedido);
+end $$
+delimiter ;
 
-    RETURN CONCAT('R$', total_pedido);
-END $$
-DELIMITER ;
--- em caso de erro: drop function valor_total;
+-- retorna os dados dos clientes que mais pediram e o total do pedido -- 
+SELECT c.nome as Nome, c.endereco as 'Endereço', p.tipo_pedido as 'Item', p.quantidade_pedido as 'Qtd', valor_total(c.id_cliente) as 'Valor Final'
+	FROM cliente as c 
+		inner join cliente_pedido as p 
+			on c.id_cliente = p.id_cliente
+				order by p.quantidade_pedido desc;
+                
+-- ----------------------------------------------------------------------------------------
+-- 2 --| retorna o valor total dos produtos em estoque |-- 
 
-SELECT c.nome AS nome_cliente, valor_total(c.id_cliente) AS total_pedido
-FROM cliente AS c;
+drop function valor_estoque;
+delimiter $$
+create function valor_estoque(id_produto int)
+returns varchar(20)
+begin 
+    declare total_estoque decimal(10,2);
+    select sum(e.preco_Unidade * e.quantidade_estoque)
+		into total_estoque
+			from estoque as e
+				where e.id_produto = id_produto;
+					return concat('R$', total_estoque);
+end $$
+delimiter ;
+
+select tipo_estoque as Item, quantidade_estoque as Qtd, valor_estoque(id_produto) as 'Valor em Estoque' from estoque;
 -- ----------------------------------------------------------------------------------------
