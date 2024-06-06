@@ -2,6 +2,7 @@ drop database delidalu;
 create schema if not exists delidalu default character set utf8;
 use delidalu;
 
+
 -- tabela cliente --
 create table if not exists cliente (
     id_cliente int auto_increment,
@@ -10,8 +11,9 @@ create table if not exists cliente (
     endereco varchar(100) not null,
     email varchar(50) not null unique,
     telefone varchar(11) not null unique,
-		primary key (id_cliente)
+                primary key (id_cliente)
 ) engine = innodb;    
+
 
 -- tabela produto -- 
 create table if not exists estoque (
@@ -19,8 +21,9 @@ create table if not exists estoque (
     tipo_estoque varchar(20) not null,
     preco_unidade decimal(5,2) not null,
     quantidade_estoque int,
-		primary key (id_produto)
+                primary key (id_produto)
 ) engine = innodb;
+
 
 -- tabela cliente_pedido --
 create table if not exists cliente_pedido (
@@ -31,10 +34,12 @@ create table if not exists cliente_pedido (
     tipo_pedido varchar(20) not null,
     mes int not null,
     ano int not null,
-		primary key (id_pedido),
-		foreign key (id_cliente) references cliente(id_cliente),
-		foreign key (id_produto) references estoque(id_produto)
+                primary key (id_pedido),
+                foreign key (id_cliente) references cliente(id_cliente),
+                foreign key (id_produto) references estoque(id_produto)
 ) engine = innodb;
+
+
 
 
 -- inserts -- 
@@ -51,11 +56,13 @@ insert into cliente (id_cliente, cpf, nome, endereco, email, telefone) values
 (null,'99201048693','Maria Alice','Samambaia','maria21@gmail.com','61980791753'),
 (null,'09758690305','Milena Moraes','Goiânia','milena@gmail.com','62939448446');
 
+
 insert into estoque (id_produto, tipo_estoque,preco_unidade, quantidade_estoque) values
 (null,'Brigadeiro',4.50,'150'),
 (null,'Beijinho',4.20,'130'),
 (null,'Casadinho',5.10,'135'),
 (null,'Ninho',5.20,'120');
+
 
 insert into cliente_pedido(id_pedido, id_cliente, id_produto, quantidade_pedido, tipo_pedido, mes, ano) values
 (null,1,4,32,'Ninho',08,2023),
@@ -69,11 +76,13 @@ insert into cliente_pedido(id_pedido, id_cliente, id_produto, quantidade_pedido,
 (null,9,1,50,'Brigadeiro',10,2023),
 (null,10,1,95,'Brigadeiro',11,2023);
 
+
 -- selects -- 
 select * from cliente;
 select * from estoque;
 select * from cliente_pedido;
 select * from cliente, estoque, cliente_pedido;
+
 
 -- retorna os dados do cliente junto com seus pedidos -- 
 select c.nome as nome, c.email as 'e-mail', c.telefone as telefone, c.endereco as endereço, p.quantidade_pedido as quantidade, e.tipo_estoque as tipo
@@ -82,10 +91,12 @@ inner join cliente as c on c.id_cliente = p.id_cliente
 inner join estoque as e on e.tipo_estoque = p.tipo_pedido
 order by tipo_estoque asc;
 
+
 -- retorna o total de brigadeiros vendidos -- 
-select  e.tipo_estoque as tipo, sum(p.quantidade_pedido) as quantidade from clientepedido as p
+select  e.tipo_estoque as tipo, sum(p.quantidade_pedido) as quantidade from cliente_pedido as p
 inner join estoque as e on e.tipo_estoque = p.tipo_pedido
 where tipo_estoque = 'brigadeiro';
+
 
 -- retorna a quantidade de doces ninho vendidos em samambaia em 2023 --
 select e.tipo_estoque as tipo,sum(quantidade_pedido) as quantidade from cliente as c 
@@ -95,6 +106,7 @@ where endereco = 'samambaia'
 and tipo_estoque = 'ninho'
 and ano = '2023';
 
+
 -- retorna os clientes que pediram entre 30 a 50 itens em ordem decrescente -- 
 select c.nome as nome, e.tipo_estoque as tipo, p.quantidade_pedido as quantidade from cliente_pedido as p
 inner join estoque as e on e.tipo_estoque = p.tipo_pedido
@@ -102,11 +114,13 @@ inner join cliente as c on c.id_cliente = p.id_cliente
 where quantidade_pedido between 30 and 50
 order by quantidade_pedido desc;
 
+
 -- retorna a região que pediu mais casadinhos -- 
 select c.endereco as endereço, count(id_pedido) as pedidos from cliente_pedido as p
 inner join cliente as c on c.id_cliente = p.id_cliente
 inner join estoque as e on e.tipo_estoque = p.tipo_pedido
 where tipo_estoque = 'casadinho';
+
 
 -- retorna os clientes que mais pediram em 2023 -- 
 select c.nome as nome ,c.endereco as endereço ,e.tipo_estoque as tipo, p.quantidade_pedido from cliente as c
@@ -115,26 +129,31 @@ inner join estoque as e on e.tipo_estoque = p.tipo_pedido
 where ano ='2023'
 order by quantidade_pedido desc;
 
+
 -- retorna a quantidade de beijinhos no estoque -- 
 select e.tipo_estoque as tipo, sum(quantidade_estoque) as 'total no estoque' from estoque as e
 where e.id_produto = '2';
+
 
 -- retorna nome, email e endereço de clientes que pediram brigadeiro -- 
 select c.nome as nome, c.email as email, c.endereco as endereço, p.quantidade_pedido as quantidade from cliente_pedido as p
 inner join cliente as c on c.id_cliente = p.id_cliente 
 inner join estoque as e on e.tipo_estoque = tipo_pedido;
 
+
 -- ----------------------------------------------------------------------------------------
 -- | TRIGGERS |----------------------------------------------------------------------------
 -- ----------------------------------------------------------------------------------------
 
+
 -- Trigger's de update e delete
 create table if not exists registro_auditoria (
     id_produto int not null references estoque(id_produto),
-  	quantidade_estoque int not null references estoque(quantidade_estoque) ,
+          quantidade_estoque int not null references estoque(quantidade_estoque) ,
     data_alteracao datetime,
     nova_quantidade int not null 
 ) engine = innodb;   
+
 
 -- ----------------------------------------------------------------------------------------
 delimiter $
@@ -149,13 +168,16 @@ delimiter ;
 drop trigger registro_auditoria_updt; -- utilizar em caso de erro na trigger
 -- -------------------------------------------------------------------------------------
 
+
 select * from registro_auditoria;
 update estoque set quantidade_estoque ='240' where id_produto = 1;
 update estoque set quantidade_estoque ='290' where id_produto = 2;
 update estoque set quantidade_estoque ='300' where id_produto = 3;
 update estoque set quantidade_estoque ='310' where id_produto = 4;
 
+
 select * from estoque;
+
 
 -- ------------------------------------------------------------- --
 -- Trigger que subtrai quantidade no estoque  --
@@ -170,23 +192,29 @@ BEGIN
 END $
 delimiter ;
 
+
 drop trigger vendas;
 -- -------------------- --
 -- Select's e updates para testes --
 -- -------------------- --
 
-update clientepedido set quantidade_pedido = '45' where id_pedido = 1 and id_cliente = 1 and id_produto = 4;
-update clientepedido set quantidade_pedido = '30' where id_produto = 2;
-update clientepedido set quantidade_pedido = '23' where id_produto = 3;
+
+update cliente_pedido set quantidade_pedido = '45' where id_pedido = 1 and id_cliente = 1 and id_produto = 4;
+update cliente_pedido set quantidade_pedido = '30' where id_produto = 2;
+update cliente_pedido set quantidade_pedido = '23' where id_produto = 3;
+
 
 select * from cliente_pedido;
 select * from estoque;
+
 
 -- ----------------------------------------------------------------------------------------
 -- | PROCEDURES |---------------------------------------------------------------------------
 -- ----------------------------------------------------------------------------------------
 
+
 delimiter $$
+
 
 create procedure inserir_cliente(
 in p_cpf varchar(11),
@@ -199,16 +227,22 @@ begin
 insert into cliente (cpf, nome, endereco, email, telefone)
 values (p_cpf, p_nome, p_endereco, p_email, p_telefone);
 
+
 end $$
+
 
 delimiter ;
 
+
 call inserir_cliente('98765432100', 'Lucas Ribamar', 'Guará', 'lucasribamar@gmail.com', '61999887766');
+
 
 select * from cliente;
 -- ----------------------------------------------------------------------------------------
 
+
 delimiter $$
+
 
 create procedure clientes_30_50_itens()
 begin
@@ -226,15 +260,20 @@ where
 p.quantidade_pedido between 30 and 50;
 end $$
 
+
 delimiter ;
 
+
 call clientes_30_50_itens();
+
 
 -- ----------------------------------------------------------------------------------------
 -- | FUNCTIONS |---------------------------------------------------------------------------
 -- ----------------------------------------------------------------------------------------
 
+
 -- 1 --| Valor total de um pedido |--
+
 
 -- drop function valor_total;
 delimiter $$
@@ -243,24 +282,27 @@ returns varchar(20)
 begin 
     declare total_pedido decimal(10,2);
 
+
     select sum(e.preco_Unidade * cp.quantidade_pedido)
-		into total_pedido
-			from cliente_pedido as cp
-				inner join estoque as e on e.id_produto = cp.id_produto
-					where cp.id_cliente = id_cliente;
-						return concat('R$', total_pedido);
+                into total_pedido
+                        from cliente_pedido as cp
+                                inner join estoque as e on e.id_produto = cp.id_produto
+                                        where cp.id_cliente = id_cliente;
+                                                return concat('R$', total_pedido);
 end $$
 delimiter ;
 
+
 -- retorna os dados dos clientes que mais pediram e o total do pedido -- 
 SELECT c.nome as Nome, c.endereco as 'Endereço', p.tipo_pedido as 'Item', p.quantidade_pedido as 'Qtd', valor_total(c.id_cliente) as 'Valor Final'
-	FROM cliente as c 
-		inner join cliente_pedido as p 
-			on c.id_cliente = p.id_cliente
-				order by p.quantidade_pedido desc;
+        FROM cliente as c 
+                inner join cliente_pedido as p 
+                        on c.id_cliente = p.id_cliente
+                                order by p.quantidade_pedido desc;
                 
 -- ----------------------------------------------------------------------------------------
 -- 2 --| retorna o valor total dos produtos em estoque |-- 
+
 
 drop function valor_estoque;
 delimiter $$
@@ -269,12 +311,13 @@ returns varchar(20)
 begin 
     declare total_estoque decimal(10,2);
     select sum(e.preco_Unidade * e.quantidade_estoque)
-		into total_estoque
-			from estoque as e
-				where e.id_produto = id_produto;
-					return concat('R$', total_estoque);
+                into total_estoque
+                        from estoque as e
+                                where e.id_produto = id_produto;
+                                        return concat('R$', total_estoque);
 end $$
 delimiter ;
+
 
 select tipo_estoque as Item, quantidade_estoque as Qtd, valor_estoque(id_produto) as 'Valor em Estoque' from estoque;
 -- ----------------------------------------------------------------------------------------
