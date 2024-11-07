@@ -8,7 +8,7 @@ Este projeto será construido utilizando PHP, SQL, HTML e CSS.
 
 ### Paleta de Cores
 
-<img src="Prototipo_index/view/design_&_layout/paleta.png">
+<img src="Porjeto-Delidalu/Prototipo_index/view/design_&_layout/paleta.png">
 
 ### Como ver o projeto de PHP na minha máquina local ?
 
