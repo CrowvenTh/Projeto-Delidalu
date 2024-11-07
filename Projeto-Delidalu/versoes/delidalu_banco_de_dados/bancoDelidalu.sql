@@ -7,11 +7,11 @@ create table if not exists cliente (id int not null primary key auto_increment, 
 
 create table if not exists estoque (id int not null primary key auto_increment, nome varchar(50), tipo varchar(50), quantidade int, preco double);
 
-create table if not exists clientepedido (id int not null primary key auto_increment, idcliente int not null, idestoque int not null, quantidadepedido int, tipopedido varchar(20), totalpedido double, datapedido date,
+create table if not exists clientepedido (id int not null primary key auto_increment, idcliente int not null, idestoque int not null, quantidadepedido int, totalpedido double, datapedido date,
 foreign key (idcliente) references cliente(id),
 foreign key (idestoque) references estoque(id));
 
-select id, idcliente, idestoque, quantidadepedido, tipopedido, totalpedido, date_format(datapedido, '%d/%m/%y') as datapedido from clientepedido;
+select id, idcliente, idestoque, quantidadepedido, totalpedido, date_format(datapedido, '%d/%m/%y') as datapedido from clientepedido;
 
 -- SELECTS --
 select * from cliente;
